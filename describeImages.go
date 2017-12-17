@@ -18,22 +18,20 @@
 
 package ec2mock
 
-import "github.com/aws/aws-sdk-go/service/ec2"
+import (
+	"time"
 
-const (
-	InstanceExists               = "InstanceExists"
-	AwsErrIncorrectInstanceState = "IncorrectInstanceState"
-	AwsErrExceededWaitAttempts   = "exceeded wait attempts"
-	InstanceStateNameFilterName  = "instance-state-name"
-	TagPrefix                    = "tag:"
-	StateChangeDelay             = 5
-	DescribeDelay                = 1
-	WaiterDelay                  = 5
-	MaxWaiterAttempts            = 40
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-type MockEc2Client struct {
-	ec2.EC2
-	Reservations  []*ec2.Reservation
-	InstanceCount int
+func (c *MockEc2Client) DescribeImages(input *ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error) {
+	time.Sleep(DescribeDelay * time.Second)
+	return &ec2.DescribeImagesOutput{
+		Images: []*ec2.Image{
+			{
+				ImageId: aws.String("ami-00000000"),
+			},
+		},
+	}, nil
 }

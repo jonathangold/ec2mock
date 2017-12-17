@@ -18,22 +18,24 @@
 
 package ec2mock
 
-import "github.com/aws/aws-sdk-go/service/ec2"
+import (
+	"fmt"
 
-const (
-	InstanceExists               = "InstanceExists"
-	AwsErrIncorrectInstanceState = "IncorrectInstanceState"
-	AwsErrExceededWaitAttempts   = "exceeded wait attempts"
-	InstanceStateNameFilterName  = "instance-state-name"
-	TagPrefix                    = "tag:"
-	StateChangeDelay             = 5
-	DescribeDelay                = 1
-	WaiterDelay                  = 5
-	MaxWaiterAttempts            = 40
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-type MockEc2Client struct {
-	ec2.EC2
-	Reservations  []*ec2.Reservation
-	InstanceCount int
+func (c *MockEc2Client) CreateTags(in *ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error) {
+	for _, res := range c.Reservations {
+		for _, inst := range res.Instances {
+			if aws.StringValue(inst.InstanceId) == aws.StringValue(in.Resources[0]) {
+				for _, tag := range in.Tags {
+					inst.Tags = append(inst.Tags, tag)
+				}
+				return &ec2.CreateTagsOutput{}, nil
+			}
+		}
+	}
+	// XXX: check actual client behavior
+	return nil, fmt.Errorf("no instance to tag")
 }
